@@ -1,0 +1,24 @@
+stages:
+  - build
+
+image: maven:3.8.5-openjdk-17
+
+variables: 
+  maven_packages_cache: ".m2/repository"
+  MAVEN_OPTS: "-Dmaven.repo.local=./$maven_packages_cache"
+
+build:
+  stage: build
+  tags:
+    - docker
+  cache:
+    paths:
+     - $maven_packages_cache
+  artifacts:
+    untracked: false
+    expire_in: 1 week
+    paths:
+      - "target/*"
+  script: 
+    - mvn compile
+    
