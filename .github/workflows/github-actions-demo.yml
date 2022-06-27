@@ -15,3 +15,37 @@ jobs:
         run: |
           ls ${{ github.workspace }}
       - run: echo "🍏 This job's status is ${{ job.status }}."
+  build:
+    runs-on: self-hosted
+    steps:
+     - run: mvn compile
+     
+  test:
+    runs-on: self-hosted
+    needs: [build]
+    steps:
+      - run: mvn test
+      
+  package:
+    runs-on: self-hosted
+    needs: [build,test]
+    steps:
+      - run: mvn package
+      
+  deploy:
+    runs-on: self-hosted
+    needs: [build,test,package]
+    env:
+      name: game2048
+      action: start
+      url: http://localhost:8080/game2048
+      on_stop: deploy_stop
+    steps:
+    - run: docker rm --force tomcat
+    - run: docker image rm --force game2048
+    - run: echo -e 'FROM tomcat:9-jdk17-openjdk-slim \n COPY ./target/game2048.war /usr/local/tomcat/webapps' | docker build -t game2048 -f- .
+    - run: docker run --rm -d --name tomcat -p 8080:8080 game2048 
+
+  
+
+  
